@@ -1902,6 +1902,10 @@ main(int argc, char **argv)
     /* turn off alarm */
     TestAlarmOff();
 
+    H5Fdelete(FILENAME[0], acc_plist);
+    H5Fdelete(FILENAME[1], acc_plist);
+
+#if 0
     if (mpi_rank_g == 0) {
         hid_t fapl_id = H5Pcreate(H5P_FILE_ACCESS);
 
@@ -1916,6 +1920,7 @@ main(int argc, char **argv)
 
         H5Pclose(fapl_id);
     }
+#endif
 
     /* close HDF5 library */
     H5close();
