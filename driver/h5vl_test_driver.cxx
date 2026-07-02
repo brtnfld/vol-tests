@@ -421,6 +421,13 @@ H5VLTestDriver::OutputStringHasError(const char *pname, string &output)
     int i, j;
 
     for (it = lines.begin(); it != lines.end(); ++it) {
+        // Skip lines explicitly tagged as non-error severity (e.g. DAOS-style
+        // "NOTICE: ..." log lines). Their message text can otherwise contain
+        // words like "failed" that trigger a false positive here even though
+        // the line itself represents an expected, non-fatal condition (e.g.
+        // a benign, retried lock-contention notice).
+        if (it->find("NOTICE:") != it->npos)
+            continue;
         for (i = 0; possibleMPIErrors[i]; ++i) {
             if (it->find(possibleMPIErrors[i]) != it->npos) {
                 int found = 1;
