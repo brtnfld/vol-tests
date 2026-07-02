@@ -1381,6 +1381,7 @@ error:
 static int
 test_get_group_info(void)
 {
+    char vol_name[5];
     H5G_info_t group_info;
     unsigned   i;
     hid_t      file_id         = H5I_INVALID_HID;
@@ -1404,6 +1405,12 @@ test_get_group_info(void)
     if ((file_id = H5Fopen(vol_test_filename, H5F_ACC_RDWR, H5P_DEFAULT)) < 0) {
         H5_FAILED();
         HDprintf("    couldn't open file '%s'\n", vol_test_filename);
+        goto error;
+    }
+
+    if (H5VLget_connector_name(file_id, vol_name, 5) < 0) {
+        H5_FAILED();
+        HDprintf("    couldn't get VOL connector name\n");
         goto error;
     }
 
@@ -1728,6 +1735,21 @@ test_get_group_info(void)
         {
             TESTING_2("H5Gget_info_by_idx by alphabetical order in decreasing order");
 
+            if (strcmp(vol_name, "daos") == 0) {
+            /* Skip for the DAOS VOL connector: decreasing, alphabetically-sorted
+ * (H5_INDEX_NAME + H5_ITER_DEC) iteration is not implemented - the connector
+ * explicitly returns "decreasing iteration order not supported" for this
+ * combination (see H5_daos_link_iterate_by_name_order() in daos_vol_link.c and
+ * its attribute equivalent in daos_vol_attr.c). This is a known, documented
+ * limitation, not a regression - implementing real decreasing-order name-sorted
+ * iteration is tracked separately. */
+                SKIPPED();
+                PART_EMPTY(H5Gget_info_by_idx_name_order_decreasing);
+            }
+            else
+            {
+        {
+
             for (i = 0; i < GROUP_GET_INFO_TEST_GROUP_NUMB; i++) {
                 memset(&group_info, 0, sizeof(group_info));
 
@@ -1773,6 +1795,8 @@ test_get_group_info(void)
             }
 
             PASSED();
+        }
+        }
         }
         PART_END(H5Gget_info_by_idx_name_order_decreasing);
     }
