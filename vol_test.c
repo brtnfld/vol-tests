@@ -247,10 +247,31 @@ main(int argc, char **argv)
                 goto done;
             }
 
-            if (default_con_id != registered_con_id) {
-                HDfprintf(stderr, "VOL connector set on default FAPL didn't match specified VOL connector\n");
-                err_occurred = TRUE;
-                goto done;
+            /* Compare via H5VLcmp_connector_cls() rather than by ID equality:
+             * as of HDF5 2.0, H5VLget_connector_id_by_name() always registers
+             * a fresh ID wrapping the underlying connector (see
+             * H5VLget_connector_id_by_name() in HDF5's src/H5VL.c), rather
+             * than incrementing the refcount on an existing, already-
+             * registered ID the way it did pre-2.0. Two different, valid IDs
+             * can therefore both legitimately refer to the same connector, so
+             * an ID value comparison alone is not version-portable.
+             * H5VLcmp_connector_cls() compares the underlying connector
+             * classes directly and works the same way on both HDF5 versions. */
+            {
+                int cmp_value;
+
+                if (H5VLcmp_connector_cls(&cmp_value, default_con_id, registered_con_id) < 0) {
+                    HDfprintf(stderr, "Couldn't compare VOL connector classes\n");
+                    err_occurred = TRUE;
+                    goto done;
+                }
+
+                if (cmp_value != 0) {
+                    HDfprintf(stderr,
+                              "VOL connector set on default FAPL didn't match specified VOL connector\n");
+                    err_occurred = TRUE;
+                    goto done;
+                }
             }
         }
     }

@@ -340,11 +340,33 @@ main(int argc, char **argv)
                     INDEPENDENT_OP_ERROR(check_vol_register);
                 }
 
-                if (default_con_id != registered_con_id) {
-                    if (MAINPROCESS)
-                        HDfprintf(stderr,
-                                  "VOL connector set on default FAPL didn't match specified VOL connector\n");
-                    INDEPENDENT_OP_ERROR(check_vol_register);
+                /* Compare via H5VLcmp_connector_cls() rather than by ID
+                 * equality: as of HDF5 2.0, H5VLget_connector_id_by_name()
+                 * always registers a fresh ID wrapping the underlying
+                 * connector, rather than incrementing the refcount on an
+                 * existing, already-registered ID the way it did pre-2.0 (see
+                 * the equivalent comment in vol_test.c). Two different, valid
+                 * IDs can therefore both legitimately refer to the same
+                 * connector, so an ID value comparison alone is not
+                 * version-portable. H5VLcmp_connector_cls() compares the
+                 * underlying connector classes directly and works the same
+                 * way on both HDF5 versions. */
+                {
+                    int cmp_value;
+
+                    if (H5VLcmp_connector_cls(&cmp_value, default_con_id, registered_con_id) < 0) {
+                        if (MAINPROCESS)
+                            HDfprintf(stderr, "Couldn't compare VOL connector classes\n");
+                        INDEPENDENT_OP_ERROR(check_vol_register);
+                    }
+
+                    if (cmp_value != 0) {
+                        if (MAINPROCESS)
+                            HDfprintf(
+                                stderr,
+                                "VOL connector set on default FAPL didn't match specified VOL connector\n");
+                        INDEPENDENT_OP_ERROR(check_vol_register);
+                    }
                 }
             }
         }
