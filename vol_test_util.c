@@ -782,11 +782,22 @@ remove_test_file(const char *prefix, const char *filename)
     else
         test_file = filename;
 
-    if (H5Fdelete(test_file, H5P_DEFAULT) < 0) {
-        HDprintf("    couldn't remove file '%s'\n", test_file);
-        ret_value = FAIL;
-        goto done;
+    /* This is best-effort cleanup: some of the filenames callers pass in were
+     * never created (e.g. a capability-gated sub-test that got skipped), so
+     * H5Fdelete failing here is an expected, non-fatal outcome the caller
+     * already tolerates (this function's return value is routinely ignored).
+     * Suppress the error stack so it doesn't get printed - otherwise test
+     * drivers that treat any "Error"/"error" substring in output as fatal
+     * (e.g. H5VLTestDriver) will incorrectly fail an otherwise-passing test
+     * run over this expected condition. */
+    H5E_BEGIN_TRY
+    {
+        if (H5Fdelete(test_file, H5P_DEFAULT) < 0) {
+            ret_value = FAIL;
+            goto done;
+        }
     }
+    H5E_END_TRY;
 
 done:
     HDfree(prefixed_filename);
