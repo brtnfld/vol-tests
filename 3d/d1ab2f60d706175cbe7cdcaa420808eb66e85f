@@ -1,0 +1,23 @@
+vol_file_test.c
+  s_26dd7a02fa0645::t_6f98400c1c331a 1978
+  s_26dd7a02fa0645::t_37a6b1a8334f33 2003-2020
+vol_object_test.c
+  s_26dd7a02fa0645::t_e7f2d5d644ad5f 5386-5393,5395-5396,5398-5403,5405-5412
+  s_26dd7a02fa0645::t_7fdeba54b40f25 5667-5671,5673-5674,5676-5681,5683-5690
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "3dd1ab2f60d706175cbe7cdcaa420808eb66e85f",
+  "prompts": {},
+  "sessions": {
+    "s_26dd7a02fa0645": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9df97eec-d0bc-4dec-b936-0a96ef62e3ff",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "M. Scot Breitenfeld <brtnfld@hdfgroup.org>"
+    }
+  }
+}
